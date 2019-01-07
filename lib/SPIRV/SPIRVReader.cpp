@@ -2499,6 +2499,7 @@ CallInst *SPIRVToLLVM::transOCLBarrier(BasicBlock *BB, SPIRVWord ExecScope,
     Func->setCallingConv(CallingConv::SPIR_FUNC);
     if (isFuncNoUnwind())
       Func->addFnAttr(Attribute::NoUnwind);
+    Func->addFnAttr(Attribute::NoDuplicate);
   }
 
   return CallInst::Create(Func, Arg, "", BB);
