@@ -19,6 +19,8 @@ on:
   pull_request:
     branches:
       - master
+      - debug
+      - debug-base
       - llvm_release_*
     paths-ignore: # no need to check build for:
       - 'docs/**' # documentation
