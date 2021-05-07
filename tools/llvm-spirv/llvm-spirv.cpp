@@ -660,6 +660,7 @@ int main(int Ac, char **Av) {
     std::vector<SpecConstInfoTy> SpecConstInfo;
     if (!getSpecConstInfo(IFS, SpecConstInfo)) {
       std::cout << "Invalid SPIR-V binary";
+      assert(0);
       return -1;
     }
     std::cout << "Number of scalar specialization constants in the module = "
