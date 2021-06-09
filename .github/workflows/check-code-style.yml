@@ -26,6 +26,10 @@ env:
   # env variable used to specify desired version of it
   LLVM_VERSION: 13
 
+  # Use a released version of clang-tidy and clang-format.
+  CLANG_TIDY_VERSION: 11
+  CLANG_FORMAT_VERSION: 11
+
 jobs:
   clang-format-and-tidy:
     name: clang-format & clang-tidy
@@ -60,8 +64,11 @@ jobs:
         # configuration step to generate that database
         curl -L "https://apt.llvm.org/llvm-snapshot.gpg.key" | sudo apt-key add -
         echo "deb https://apt.llvm.org/bionic/ llvm-toolchain-bionic main" | sudo tee -a /etc/apt/sources.list
+        echo "deb https://apt.llvm.org/bionic/ llvm-toolchain-bionic-${{ env.CLANG_TIDY_VERSION }} main" | sudo tee -a /etc/apt/sources.list
         sudo apt-get update
-        sudo apt-get install -yqq clang-format-9 clang-tidy-9 llvm-${{ env.LLVM_VERSION }}-dev libomp-${{ env.LLVM_VERSION }}-dev
+        sudo apt-get install -yqq \
+            clang-format-${{ env.CLANG_FORMAT_VERSION }} clang-tidy-${{ env.CLANG_TIDY_VERSION }} \
+            llvm-${{ env.LLVM_VERSION }}-dev libomp-${{ env.LLVM_VERSION }}-dev
 
     - name: Generate compile command database
       if: ${{ steps.gather-list-of-changes.outputs.HAS_CHANGES }}
@@ -73,7 +80,7 @@ jobs:
       if: ${{ steps.gather-list-of-changes.outputs.HAS_CHANGES }}
       id: run-clang-format
       run: |
-        cat diff-to-inspect.txt | /usr/share/clang/clang-format-9/clang-format-diff.py -p1 > clang-format.patch
+        cat diff-to-inspect.txt | /usr/share/clang/clang-format-${{ env.CLANG_FORMAT_VERSION }}/clang-format-diff.py -p1 > clang-format.patch
         if [ -s clang-format.patch ]; then
           echo "clang-format found incorrectly formatted code:"
           cat clang-format.patch;
@@ -91,8 +98,8 @@ jobs:
       if: ${{ always() && steps.gather-list-of-changes.outputs.HAS_CHANGES }}
       id: run-clang-tidy
       run: |
-        cat diff-to-inspect.txt | /usr/lib/llvm-9/share/clang/clang-tidy-diff.py \
-            -p1 -clang-tidy-binary clang-tidy-9 -quiet \
+        cat diff-to-inspect.txt | /usr/lib/llvm-${{ env.CLANG_TIDY_VERSION }}/share/clang/clang-tidy-diff.py \
+            -p1 -clang-tidy-binary clang-tidy-${{ env.CLANG_TIDY_VERSION }} -quiet \
             -path ${{ github.workspace}}/build > clang-tidy.log 2>/dev/null
         # By some reason, clang-tidy log contains tons of extra empty lines,
         # that confuse the check below
